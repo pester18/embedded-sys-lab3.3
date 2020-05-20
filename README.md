@@ -1,2 +1,2 @@
-# embedded-sys-lab3.3
-Embedded System Lab 3.3
+# Embedded Systems Lab 3.3
+Genetic algorithm
