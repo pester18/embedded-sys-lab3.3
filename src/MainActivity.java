@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
         Equation equation = new Equation(coeffs, yValue);
         Population population = new Population(1000, 4, 10);
 
-        int[] result = population.generate(equation);
-        showToast("Answer is: " + Arrays.toString(result));
+        double optimalMutation = population.getOptimalMutation(equation, 0.1);
+        showToast("Optimal mutation is: " + Double.toString(optimalMutation));
 
     }
 
@@ -123,7 +123,7 @@ class Population {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public int[] generate(Equation equation) {
+    public int generate(Equation equation, double mutation) {
         Map<Integer, Integer> deltas = new TreeMap();
         int[][] tmp = new int[this.chromosomeSize][this.populationSize];
 
@@ -131,7 +131,10 @@ class Population {
         Iterator it2;
         Iterator it3;
 
+        int iterationsNum = 0;
+
         while (true) {
+            iterationsNum++;
             for (int i = 0; i < this.populationSize; i++) {
                 int delta = equation.execute(this.chromosomes[i]);
                 deltas.put(i, delta);
@@ -143,7 +146,8 @@ class Population {
 
             Map.Entry best = (Map.Entry)it3.next();
             if ((int)best.getValue() == 0) {
-                return this.chromosomes[(int)best.getKey()];
+//                return this.chromosomes[(int)best.getKey()];
+                return iterationsNum;
             }
 
             for (int i = 0; i < this.populationSize; i++) {
@@ -154,7 +158,7 @@ class Population {
                 int step = (int)(1) + 1;
                 int modify = random.nextInt(step) - ((int)(step / 2));
                 for (int k = 0; k < this.chromosomeSize; k++) {
-                    tmp[k][i] = this.chromosomes[index][k] + modify;
+                    tmp[k][i] = this.chromosomes[index][k] + (random.nextDouble() < mutation ? modify : 0);
                 }
             }
 
@@ -165,5 +169,25 @@ class Population {
                 }
             }
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public double getOptimalMutation(Equation equation, double step) {
+        double mutation = 0.0;
+        double optimalMutation = mutation;
+        int minNumOfIterations = this.generate(equation, mutation);
+//        int arrSize = (int)(1.0 / step) + 1;
+//        int[] numbersOfIterations = new int[arrSize];
+
+        while (mutation <= 1.0) {
+            mutation += step;
+            int numOfIterations = this.generate(equation, mutation);
+            if (numOfIterations < minNumOfIterations) {
+                optimalMutation = mutation;
+                minNumOfIterations = numOfIterations;
+            }
+        }
+
+        return optimalMutation;
     }
 }
